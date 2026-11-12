@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>The Blind Pig — Доставки</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/deliveries}">Доставки</a> |
+        <a th:href="@{/deliveries/couriers}">Кур'єри</a> |
+        <a th:href="@{/deliveries/notifications}">Сповіщення</a>
+    </nav>
+
+    <h1>Керування доставками</h1>
+
+    <h2>Створити доставку для замовлення</h2>
+    <form th:action="@{/deliveries}" method="post">
+        <div>
+            <label for="orderId">Номер підтвердженого замовлення (Order ID):</label>
+            <input type="number" id="orderId" name="orderId" required min="1" />
+            <button type="submit">Створити доставку</button>
+        </div>
+    </form>
+
+    <h2>Пошук доставки за номером замовлення</h2>
+    <form th:action="@{/deliveries}" method="get">
+        <div>
+            <label for="searchOrderId">Order ID:</label>
+            <input type="number" id="searchOrderId" name="orderId" th:value="${searchedOrderId}" required min="1" />
+            <button type="submit">Знайти доставку</button>
+        </div>
+    </form>
+
+    <div th:if="${searchError}">
+        <p th:text="${searchError}">Доставку не знайдено.</p>
+    </div>
+
+    <div th:if="${selectedDelivery}">
+        <h3>Деталі знайденої доставки</h3>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID Доставки</th>
+                    <th>Order ID</th>
+                    <th>Кур'єр (ID)</th>
+                    <th>Статус</th>
+                    <th>Час створення</th>
+                    <th>Час доставки</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="${selectedDelivery.id}">1</td>
+                    <td th:text="${selectedDelivery.orderId}">100</td>
+                    <td th:text="${selectedDelivery.courierId != null ? selectedDelivery.courierId : 'Не призначено'}">Не призначено</td>
+                    <td th:switch="${selectedDelivery.status}">
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).CREATED}">Створено (очікує кур'єра)</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).ASSIGNED}">Кур'єра призначено</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).IN_TRANSIT}">В дорозі</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).DELIVERED}">Доставлено клієнту</span>
+                    </td>
+                    <td th:text="${selectedDelivery.createdAt}">2026-11-12</td>
+                    <td th:text="${selectedDelivery.deliveredAt != null ? selectedDelivery.deliveredAt : '—'}">—</td>
+                    <td>
+                        <div th:if="${selectedDelivery.status == T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).CREATED}">
+                            <form th:action="@{/deliveries/{id}/assign(id=${selectedDelivery.id})}" method="post">
+                                <input type="hidden" name="orderId" th:value="${selectedDelivery.orderId}" />
+                                <select name="courierId" required>
+                                    <option value="" disabled selected>Оберіть вільного кур'єра</option>
+                                    <option th:each="c : ${availableCouriers}" th:value="${c.id}" th:text="${c.name + ' (' + c.phone + ')'}">Тарас</option>
+                                </select>
+                                <button type="submit">Призначити</button>
+                            </form>
+                        </div>
+
+                        <div th:if="${selectedDelivery.status == T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).ASSIGNED}">
+                            <form th:action="@{/deliveries/{id}/status(id=${selectedDelivery.id})}" method="post">
+                                <input type="hidden" name="orderId" th:value="${selectedDelivery.orderId}" />
+                                <input type="hidden" name="status" value="IN_TRANSIT" />
+                                <button type="submit">Передати в доставку</button>
+                            </form>
+                        </div>
+
+                        <div th:if="${selectedDelivery.status == T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).IN_TRANSIT}">
+                            <form th:action="@{/deliveries/{id}/status(id=${selectedDelivery.id})}" method="post">
+                                <input type="hidden" name="orderId" th:value="${selectedDelivery.orderId}" />
+                                <input type="hidden" name="status" value="DELIVERED" />
+                                <button type="submit">Позначити як доставлено</button>
+                            </form>
+                        </div>
+
+                        <div th:if="${selectedDelivery.status == T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).DELIVERED}">
+                            <span>Завершено</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Перегляд доставок конкретного кур'єра</h2>
+    <form th:action="@{/deliveries}" method="get">
+        <div>
+            <label for="courierFilter">Кур'єр:</label>
+            <select id="courierFilter" name="courierId" required>
+                <option value="" disabled selected>Оберіть кур'єра</option>
+                <option th:each="c : ${allCouriers}" th:value="${c.id}" th:text="${c.name + ' (' + (c.available ? 'Вільний' : 'Зайнятий') + ')'}" th:selected="${c.id == selectedCourierId}">Кур'єр</option>
+            </select>
+            <button type="submit">Показати доставки кур'єра</button>
+        </div>
+    </form>
+
+    <div th:if="${courierDeliveries}">
+        <h3>Список доставок обраного кур'єра</h3>
+        <div th:if="${#lists.isEmpty(courierDeliveries)}">
+            <p>У цього кур'єра наразі немає призначених доставок.</p>
+        </div>
+        <table th:unless="${#lists.isEmpty(courierDeliveries)}" border="1">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID Доставки</th>
+                    <th>Order ID</th>
+                    <th>Статус</th>
+                    <th>Час створення</th>
+                    <th>Час доставки</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="cd, iterStat : ${courierDeliveries}">
+                    <td th:text="${iterStat.count}">1</td>
+                    <td th:text="${cd.id}">1</td>
+                    <td th:text="${cd.orderId}">100</td>
+                    <td th:switch="${cd.status}">
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).CREATED}">Створено</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).ASSIGNED}">Призначено</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).IN_TRANSIT}">В дорозі</span>
+                        <span th:case="${T(ua.kpi.blindpig.delivery.dto.DeliveryStatus).DELIVERED}">Доставлено</span>
+                    </td>
+                    <td th:text="${cd.createdAt}">2026-11-12</td>
+                    <td th:text="${cd.deliveredAt != null ? cd.deliveredAt : '—'}">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
