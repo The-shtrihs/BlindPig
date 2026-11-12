@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>The Blind Pig — Кур'єри</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/deliveries}">Доставки</a> |
+        <a th:href="@{/deliveries/couriers}">Кур'єри</a> |
+        <a th:href="@{/deliveries/notifications}">Сповіщення</a>
+    </nav>
+
+    <h1>Керування кур'єрами</h1>
+
+    <h2>Додати нового кур'єра</h2>
+    <form th:action="@{/deliveries/couriers}" th:object="${courierForm}" method="post">
+        <div>
+            <label for="name">Ім'я кур'єра:</label>
+            <input type="text" id="name" th:field="*{name}" required />
+        </div>
+        <div>
+            <label for="phone">Номер телефону:</label>
+            <input type="text" id="phone" th:field="*{phone}" required />
+        </div>
+        <div>
+            <label for="available">Доступний для замовлень:</label>
+            <input type="checkbox" id="available" th:field="*{available}" />
+        </div>
+        <div>
+            <button type="submit">Зберегти кур'єра</button>
+        </div>
+    </form>
+
+    <h2>Список кур'єрів</h2>
+    <div th:if="${#lists.isEmpty(couriers)}">
+        <p>Наразі немає зареєстрованих кур'єрів.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(couriers)}" border="1">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Ім'я</th>
+                <th>Телефон</th>
+                <th>Статус</th>
+                <th>Дія</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="courier, iterStat : ${couriers}">
+                <td th:text="${iterStat.count}">1</td>
+                <td th:text="${courier.id}">1</td>
+                <td th:text="${courier.name}">Тарас</td>
+                <td th:text="${courier.phone}">+380501112233</td>
+                <td th:text="${courier.available ? 'Вільний' : 'Зайнятий'}">Вільний</td>
+                <td>
+                    <form th:action="@{/deliveries/couriers/{id}/toggle-availability(id=${courier.id})}" method="post">
+                        <button type="submit" th:text="${courier.available ? 'Зробити зайнятим' : 'Зробити вільним'}">Змінити статус</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

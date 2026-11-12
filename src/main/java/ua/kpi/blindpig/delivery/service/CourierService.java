@@ -1,6 +1,8 @@
 package ua.kpi.blindpig.delivery.service;
 
-import ua.kpi.blindpig.delivery.dto.*;
+import ua.kpi.blindpig.delivery.dto.CourierDto;
+import ua.kpi.blindpig.delivery.dto.SaveCourierRequest;
+
 import java.util.List;
 
 public interface CourierService {
@@ -9,7 +11,6 @@ public interface CourierService {
     List<CourierDto> list();
     List<CourierDto> findAvailable();
     CourierDto update(Long courierId, SaveCourierRequest request);
-    /** Used by DeliveryService when assigning/completing delivery. */
     CourierDto setAvailability(Long courierId, boolean available);
     void delete(Long courierId);
 }

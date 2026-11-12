@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>The Blind Pig — Сповіщення</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/deliveries}">Доставки</a> |
+        <a th:href="@{/deliveries/couriers}">Кур'єри</a> |
+        <a th:href="@{/deliveries/notifications}">Сповіщення</a>
+    </nav>
+
+    <h1>Центр сповіщень клієнтів</h1>
+
+    <h2>Пошук сповіщень за ID клієнта</h2>
+    <form th:action="@{/deliveries/notifications}" method="get">
+        <div>
+            <label for="customerId">ID Клієнта:</label>
+            <input type="number" id="customerId" name="customerId" th:value="${customerId}" required min="1" />
+            <button type="submit">Показати сповіщення</button>
+        </div>
+    </form>
+
+    <h2>Список сповіщень</h2>
+    <div th:if="${#lists.isEmpty(notifications)}">
+        <p>Для цього клієнта сповіщень немає.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(notifications)}" border="1">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Order ID</th>
+                <th>Повідомлення</th>
+                <th>Дата</th>
+                <th>Стан</th>
+                <th>Дія</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="notification, iterStat : ${notifications}">
+                <td th:text="${iterStat.count}">1</td>
+                <td th:text="${notification.id}">1</td>
+                <td th:text="${notification.orderId != null ? notification.orderId : '—'}">—</td>
+                <td th:text="${notification.message}">Текст</td>
+                <td th:text="${notification.createdAt}">2026-11-12</td>
+                <td th:text="${notification.read ? 'Прочитано' : 'Нове'}">Нове</td>
+                <td>
+                    <div th:unless="${notification.read}">
+                        <form th:action="@{/deliveries/notifications/{id}/read(id=${notification.id})}" method="post">
+                            <input type="hidden" name="customerId" th:value="${customerId}" />
+                            <button type="submit">Позначити як прочитане</button>
+                        </form>
+                    </div>
+                    <span th:if="${notification.read}">—</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
