@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head('Платежі')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('payments')}"></nav>
+<main>
+    <div th:replace="~{billing/fragments :: flash}"></div>
+    <h1>Платежі</h1>
+
+    <div class="toolbar">
+        <form th:action="@{/payments}" method="get">
+            <label>Статус
+                <select name="status">
+                    <option value="" th:selected="${selectedStatus == null}">усі</option>
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                            th:selected="${s == selectedStatus}">PENDING</option>
+                </select>
+            </label>
+            <button type="submit">Фільтрувати</button>
+        </form>
+
+        <form th:action="@{/payments}" method="post">
+            <label>ID замовлення <input type="number" name="orderId" min="1" required></label>
+            <button type="submit">Створити платіж</button>
+        </form>
+    </div>
+
+    <p th:if="${#lists.isEmpty(payments)}" class="muted"
+       th:text="${selectedStatus} ? 'Немає платежів зі статусом ' + ${selectedStatus} : 'Платежів поки немає.'">Платежів поки немає.</p>
+    <table th:unless="${#lists.isEmpty(payments)}">
+        <thead><tr><th>#</th><th>Замовлення</th><th>Сума</th><th>Статус</th><th>Створено</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="p : ${payments}" th:classappend="${#strings.toLowerCase(p.status)}">
+            <td th:text="${p.id}">1</td>
+            <td th:text="'#' + ${p.orderId}">#1</td>
+            <td th:text="${#numbers.formatDecimal(p.amount, 1, 2)} + ' грн'">216.00 грн</td>
+            <td th:insert="~{billing/fragments :: paymentStatus(${p.status})}"></td>
+            <td th:text="${#temporals.format(p.createdAt, 'dd.MM.yyyy HH:mm')}">13.11.2026</td>
+            <td><a th:href="@{/payments/{id}(id=${p.id})}">Деталі</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

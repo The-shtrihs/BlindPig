@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head('Помилка')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('')}"></nav>
+<main>
+    <h1 th:switch="${status}">
+        <span th:case="404">Не знайдено</span>
+        <span th:case="409">Конфлікт стану</span>
+        <span th:case="*">Некоректний запит</span>
+    </h1>
+    <p class="flash error" th:text="${message}">Повідомлення</p>
+    <p><a href="javascript:history.back()">← Назад</a></p>
+</main>
+</body>
+</html>

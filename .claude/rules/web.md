@@ -22,6 +22,6 @@ Both `web/page` (`@Controller`) and `web/api` (`@RestController`) call the **sam
 - Templates live in `templates/<domain>/`. Use one fragment file per domain for head and nav until a shared layout exists.
 - Output goes through `th:text` only. **Never `th:utext`**, because user input must be escaped (a hook enforces this).
 - Show the lab-3 features: `th:each`, `th:if`/`th:unless`, Elvis `?:`, `th:switch`/`th:case`, `th:classappend` for conditional formatting.
-- Forms bind to **mutable form-backing classes** (`web/page/form/*Form`, Lombok `@Data`), not records. Use `th:object` and `th:field`, and `@DateTimeFormat(iso = DATE_TIME)` for `datetime-local` inputs.
+- Forms bind to **mutable form-backing classes** (`web/page/form/*Form`, Lombok `@Data`), not records. Use `th:object` and `th:field`, and `@DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")` for `datetime-local` inputs (ISO `DATE_TIME` expects seconds and an offset, which the browser doesn't send).
 - Use POST-Redirect-GET: after a successful POST, redirect and show a flash message (`RedirectAttributes.addFlashAttribute`). On a service error, re-render the form with `bindingResult.reject(...)` or a field error.
 - HTML forms have no PUT or DELETE. Use `POST /…/{id}` for update and `POST /…/{id}/delete` for delete.

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head(${discountId == null} ? 'Нова знижка' : 'Редагування знижки')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('promotions')}"></nav>
+<main>
+    <h1 th:text="${discountId == null} ? 'Нова знижка' : 'Знижка #' + ${discountId}">Нова знижка</h1>
+
+    <form class="card" th:object="${discountForm}" method="post"
+          th:action="${discountId == null} ? @{/promotions/discounts} : @{/promotions/discounts/{id}(id=${discountId})}">
+        <div class="flash error" th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Помилка</p>
+        </div>
+
+        <label>Назва <input type="text" th:field="*{name}" required maxlength="100"></label>
+        <label>Тип
+            <select th:field="*{type}">
+                <option th:each="t : ${discountTypes}" th:value="${t}"
+                        th:text="${t.name() == 'PERCENTAGE'} ? 'Відсоток (%)' : 'Фіксована сума (грн)'">PERCENTAGE</option>
+            </select>
+        </label>
+        <label>Розмір <input type="number" step="0.01" min="0.01" th:field="*{value}" required></label>
+        <span class="error" th:if="${#fields.hasErrors('value')}" th:errors="*{value}">Некоректне число</span>
+
+        <fieldset>
+            <legend>Ціль — заповніть рівно одне поле</legend>
+            <label>ID страви <input type="number" min="1" th:field="*{menuItemId}"></label>
+            <label>ID категорії <input type="number" min="1" th:field="*{categoryId}"></label>
+        </fieldset>
+
+        <label>Діє з <input type="datetime-local" th:field="*{validFrom}"></label>
+        <label>Діє до <input type="datetime-local" th:field="*{validUntil}"></label>
+        <label class="inline"><input type="checkbox" th:field="*{active}"> Активна</label>
+
+        <div class="form-actions">
+            <button type="submit">Зберегти</button>
+            <a th:href="@{/promotions}">Скасувати</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

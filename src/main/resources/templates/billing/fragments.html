@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'The Blind Pig — ' + ${title}">The Blind Pig</title>
+    <link rel="stylesheet" th:href="@{/css/billing.css}">
+</head>
+<body>
+<nav th:fragment="nav(active)" class="billing-nav">
+    <strong>🐖 The Blind Pig · Billing</strong>
+    <a th:href="@{/promotions}" th:classappend="${active == 'promotions'} ? 'current'">Акції та промокоди</a>
+    <a th:href="@{/promotions/calculator}" th:classappend="${active == 'calculator'} ? 'current'">Калькулятор ціни</a>
+    <a th:href="@{/payments}" th:classappend="${active == 'payments'} ? 'current'">Платежі</a>
+</nav>
+
+<div th:fragment="flash">
+    <p class="flash success" th:if="${success}" th:text="${success}">Збережено</p>
+    <p class="flash error" th:if="${error}" th:text="${error}">Помилка</p>
+</div>
+
+<span th:fragment="statusBadge(status)" class="badge" th:classappend="${status.cssClass()}" th:switch="${status.name()}">
+    <th:block th:case="'ACTIVE'">діє</th:block>
+    <th:block th:case="'UPCOMING'">ще не почалась</th:block>
+    <th:block th:case="'EXPIRED'">завершилась</th:block>
+    <th:block th:case="*">вимкнено</th:block>
+</span>
+
+<th:block th:fragment="paymentStatus(status)" th:switch="${status.name()}">
+    <span th:case="'PENDING'" class="badge upcoming">очікує оплати</span>
+    <span th:case="'PAID'" class="badge active">оплачено</span>
+    <span th:case="'FAILED'" class="badge expired">відхилено</span>
+</th:block>
+
+<th:block th:fragment="discountValue(type, value)" th:switch="${type.name()}">
+    <span th:case="'PERCENTAGE'" th:text="'−' + ${#numbers.formatDecimal(value, 1, 2)} + ' %'">−20 %</span>
+    <span th:case="'FIXED'" th:text="'−' + ${#numbers.formatDecimal(value, 1, 2)} + ' грн'">−50 грн</span>
+</th:block>
+</body>
+</html>

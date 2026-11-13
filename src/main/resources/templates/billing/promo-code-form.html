@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head(${promoCodeId == null} ? 'Новий промокод' : 'Редагування промокоду')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('promotions')}"></nav>
+<main>
+    <h1 th:text="${promoCodeId == null} ? 'Новий промокод' : 'Промокод #' + ${promoCodeId}">Новий промокод</h1>
+
+    <form class="card" th:object="${promoCodeForm}" method="post"
+          th:action="${promoCodeId == null} ? @{/promotions/promo-codes} : @{/promotions/promo-codes/{id}(id=${promoCodeId})}">
+        <div class="flash error" th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Помилка</p>
+        </div>
+
+        <label>Код <input type="text" th:field="*{code}" required maxlength="32" placeholder="WELCOME10"></label>
+        <label>Тип
+            <select th:field="*{type}">
+                <option th:each="t : ${discountTypes}" th:value="${t}"
+                        th:text="${t.name() == 'PERCENTAGE'} ? 'Відсоток (%)' : 'Фіксована сума (грн)'">PERCENTAGE</option>
+            </select>
+        </label>
+        <label>Розмір <input type="number" step="0.01" min="0.01" th:field="*{value}" required></label>
+        <label>Мінімальна сума замовлення, грн <input type="number" step="0.01" min="0" th:field="*{minOrderAmount}"></label>
+        <span class="error" th:if="${#fields.hasErrors('*')}" th:errors="*{*}">Некоректне значення</span>
+        <label>Діє з <input type="datetime-local" th:field="*{validFrom}"></label>
+        <label>Діє до <input type="datetime-local" th:field="*{validUntil}"></label>
+        <label class="inline"><input type="checkbox" th:field="*{active}"> Активний</label>
+
+        <div class="form-actions">
+            <button type="submit">Зберегти</button>
+            <a th:href="@{/promotions}">Скасувати</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>
