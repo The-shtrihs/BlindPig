@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head('Акції та промокоди')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('promotions')}"></nav>
+<main>
+    <div th:replace="~{billing/fragments :: flash}"></div>
+
+    <h1>Акції та промокоди</h1>
+    <p class="muted">Стан на <span th:text="${#temporals.format(now, 'dd.MM.yyyy HH:mm')}">13.11.2026 12:00</span></p>
+
+    <section>
+        <div class="section-head">
+            <h2>Автоматичні знижки</h2>
+            <a class="button" th:href="@{/promotions/discounts/new}">+ Нова знижка</a>
+        </div>
+        <p th:if="${#lists.isEmpty(discounts)}" class="muted">Знижок поки немає.</p>
+        <table th:unless="${#lists.isEmpty(discounts)}">
+            <thead>
+            <tr><th>#</th><th>Назва</th><th>Розмір</th><th>Ціль</th><th>Діє з</th><th>Діє до</th><th>Стан</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="row, it : ${discounts}" th:with="d=${row.discount}"
+                th:classappend="${row.status.cssClass()} + (${it.odd} ? ' odd' : '')">
+                <td th:text="${d.id}">1</td>
+                <td th:text="${d.name}">Піца −20%</td>
+                <td th:insert="~{billing/fragments :: discountValue(${d.type}, ${d.value})}"></td>
+                <td>
+                    <span th:if="${d.menuItemId != null}" th:text="'Страва #' + ${d.menuItemId}">Страва #1</span>
+                    <span th:unless="${d.menuItemId != null}" th:text="'Категорія #' + ${d.categoryId}">Категорія #1</span>
+                </td>
+                <td th:text="${d.validFrom != null} ? ${#temporals.format(d.validFrom, 'dd.MM.yyyy HH:mm')} : 'без обмеження'">—</td>
+                <td th:text="${d.validUntil != null ? #temporals.format(d.validUntil, 'dd.MM.yyyy HH:mm') : null} ?: 'без обмеження'">—</td>
+                <td th:insert="~{billing/fragments :: statusBadge(${row.status})}"></td>
+                <td class="actions">
+                    <a th:href="@{/promotions/discounts/{id}/edit(id=${d.id})}">Редагувати</a>
+                    <form th:action="@{/promotions/discounts/{id}/delete(id=${d.id})}" method="post">
+                        <button type="submit" class="link danger">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <div class="section-head">
+            <h2>Промокоди</h2>
+            <a class="button" th:href="@{/promotions/promo-codes/new}">+ Новий промокод</a>
+        </div>
+        <p th:if="${#lists.isEmpty(promoCodes)}" class="muted">Промокодів поки немає.</p>
+        <table th:unless="${#lists.isEmpty(promoCodes)}">
+            <thead>
+            <tr><th>#</th><th>Код</th><th>Розмір</th><th>Мін. сума</th><th>Діє до</th><th>Стан</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${promoCodes}" th:with="p=${row.promoCode}" th:classappend="${row.status.cssClass()}">
+                <td th:text="${p.id}">1</td>
+                <td><code th:text="${p.code}">WELCOME10</code></td>
+                <td th:insert="~{billing/fragments :: discountValue(${p.type}, ${p.value})}"></td>
+                <td th:text="${p.minOrderAmount != null ? #numbers.formatDecimal(p.minOrderAmount, 1, 2) + ' грн' : null} ?: '—'">—</td>
+                <td th:text="${p.validUntil != null ? #temporals.format(p.validUntil, 'dd.MM.yyyy HH:mm') : null} ?: 'без обмеження'">—</td>
+                <td th:insert="~{billing/fragments :: statusBadge(${row.status})}"></td>
+                <td class="actions">
+                    <a th:href="@{/promotions/promo-codes/{id}/edit(id=${p.id})}">Редагувати</a>
+                    <form th:action="@{/promotions/promo-codes/{id}/delete(id=${p.id})}" method="post">
+                        <button type="submit" class="link danger">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

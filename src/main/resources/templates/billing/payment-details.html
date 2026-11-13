@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head('Платіж #' + ${payment.id})}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('payments')}"></nav>
+<main>
+    <div th:replace="~{billing/fragments :: flash}"></div>
+    <h1 th:text="'Платіж #' + ${payment.id}">Платіж #1</h1>
+
+    <dl class="card">
+        <dt>Замовлення</dt><dd th:text="'#' + ${payment.orderId}">#1</dd>
+        <dt>Сума</dt><dd th:text="${#numbers.formatDecimal(payment.amount, 1, 2)} + ' грн'">216.00 грн</dd>
+        <dt>Статус</dt>
+        <dd th:insert="~{billing/fragments :: paymentStatus(${payment.status})}"></dd>
+        <dt>Створено</dt><dd th:text="${#temporals.format(payment.createdAt, 'dd.MM.yyyy HH:mm:ss')}">13.11.2026</dd>
+    </dl>
+
+    <section th:if="${payment.status.name() == 'PENDING'}">
+        <h2>Імітація результату оплати</h2>
+        <form th:each="o : ${outcomes}" th:action="@{/payments/{id}/simulate(id=${payment.id})}" method="post" class="inline-form">
+            <input type="hidden" name="outcome" th:value="${o}">
+            <button type="submit" th:classappend="${o.name() == 'FAILURE'} ? 'danger'"
+                    th:text="${o.name() == 'SUCCESS'} ? 'Оплата успішна' : 'Оплата неуспішна'">Оплата успішна</button>
+        </form>
+    </section>
+    <p th:unless="${payment.status.name() == 'PENDING'}" class="muted">Результат оплати вже зафіксовано; повторна оплата в MVP не підтримується.</p>
+
+    <p><a th:href="@{/payments}">← До списку платежів</a></p>
+</main>
+</body>
+</html>

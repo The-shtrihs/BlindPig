@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{billing/fragments :: head('Калькулятор ціни')}"></head>
+<body>
+<nav th:replace="~{billing/fragments :: nav('calculator')}"></nav>
+<main>
+    <h1>Калькулятор ціни</h1>
+    <p class="muted">Попередній розрахунок за правилами checkout: одна найвигідніша автоматична знижка на одиницю,
+        потім промокод на суму після знижок. Остаточну суму рахує сервер під час оформлення замовлення.</p>
+
+    <form class="card" th:object="${calculatorForm}" th:action="@{/promotions/calculator}" method="post">
+        <div class="flash error" th:if="${#fields.hasAnyErrors()}">
+            <p th:each="err : ${#fields.allErrors()}" th:text="${err}">Помилка</p>
+        </div>
+        <label>ID страви <input type="number" min="1" th:field="*{menuItemId}" required></label>
+        <label>ID категорії <input type="number" min="1" th:field="*{categoryId}"></label>
+        <label>Базова ціна, грн <input type="number" step="0.01" min="0" th:field="*{basePrice}" required></label>
+        <label>Кількість <input type="number" min="1" th:field="*{quantity}" required></label>
+        <label>Промокод <input type="text" th:field="*{promoCode}"></label>
+        <div class="form-actions"><button type="submit">Розрахувати</button></div>
+    </form>
+
+    <table class="breakdown" th:if="${preview}" th:with="q=${preview.quote}">
+        <tr><td>Базова ціна × кількість</td>
+            <td th:text="${#numbers.formatDecimal(q.baseUnitPrice, 1, 2)} + ' × ' + ${preview.quantity}">300.00 × 1</td></tr>
+        <tr><td>Сума без знижок</td><td th:text="${#numbers.formatDecimal(preview.subtotal, 1, 2)} + ' грн'">300.00 грн</td></tr>
+        <tr th:classappend="${q.discountId == null} ? 'muted'">
+            <td th:text="${q.discountId != null} ? 'Автоматична знижка #' + ${q.discountId} : 'Автоматична знижка'">Автоматична знижка</td>
+            <td th:text="${q.discountId != null} ? '−' + ${#numbers.formatDecimal(preview.automaticDiscount, 1, 2)} + ' грн' : 'немає чинних знижок'">−60.00 грн</td></tr>
+        <tr><td>Сума після автоматичних знижок</td>
+            <td><strong th:text="${#numbers.formatDecimal(preview.subtotalAfterAuto, 1, 2)} + ' грн'">240.00 грн</strong></td></tr>
+        <tr th:if="${preview.promoCode}" th:classappend="${preview.promoError} ? 'rejected'">
+            <td th:text="'Промокод ' + ${preview.promoCode}">Промокод WELCOME10</td>
+            <td th:text="${preview.promoError} ?: ('−' + ${#numbers.formatDecimal(preview.promoDiscount, 1, 2)} + ' грн')">−24.00 грн</td></tr>
+        <tr class="total"><td>До сплати</td><td th:text="${#numbers.formatDecimal(preview.total, 1, 2)} + ' грн'">216.00 грн</td></tr>
+    </table>
+</main>
+</body>
+</html>
